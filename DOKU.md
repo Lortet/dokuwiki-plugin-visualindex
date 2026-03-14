@@ -3,9 +3,9 @@
 ---- plugin ----
 description: Affiche un sommaire visuel
 author     : Valentin LORTET, Gabriel CHOIMET
-email      : contact@lortet.fr
+email      : contact@valentinlortet.fr
 type       : Syntax, Action
-lastupdate : 2026-03-09
+lastupdate : 2026-03-14
 compatible : Librarian
 depends    :
 conflicts  :

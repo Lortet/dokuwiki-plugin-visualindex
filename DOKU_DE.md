@@ -5,7 +5,7 @@ description: Zeigt einen visuellen Index an
 author     : Valentin LORTET, Gabriel CHOIMET
 email      : contact@valentinlortet.fr
 type       : Syntax, Action
-lastupdate : 2026-03-09
+lastupdate : 2026-03-14
 compatible : Librarian
 depends    :
 conflicts  :
