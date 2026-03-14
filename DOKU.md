@@ -12,12 +12,14 @@ conflicts  :
 similar    :
 tags       : Navigation, Index, Media, ProseMirror, pagesicon
 
-downloadurl:
-bugtracker :
-sourcerepo :
+downloadurl: https://github.com/Lortet/dokuwiki-plugin-visualindex/zipball/master
+bugtracker : https://github.com/Lortet/dokuwiki-plugin-visualindex/issues
+sourcerepo : https://github.com/Lortet/dokuwiki-plugin-visualindex/
 donationurl:
 screenshot_img :
 ----
+
+**🇫🇷 Français** | [[plugin:visualindex|🇬🇧 English]] | [[de:plugin:visualindex|🇩🇪 Deutsch]] | [[es:plugin:visualindex|🇪🇸 Español]]
 
 ===== Installation =====
 
@@ -56,9 +58,9 @@ Namespace spécial :
 ===== Paramètres =====
 
 ^ Nom ^ Description ^ Valeur par défaut ^
-| taille_icone | Taille de l'icône (ex. ''100px''). | ''100px'' |
-| taille_texte | Taille du texte (ex. ''13px''). | ''13px'' |
-| couleur_texte | Couleur du texte (hex, rgb/rgba, ou nom CSS). | ''black'' |
+| icon_size | Taille de l'icône (ex. ''100px''). | ''100px'' |
+| text_size | Taille du texte (ex. ''13px''). | ''13px'' |
+| text_color | Couleur du texte (hex, rgb/rgba, ou nom CSS). | ''black'' |
 | skip_file | Regex des pages à ignorer. | '''' |
 | show_in_editor_menu | Afficher Visualindex dans les menus d'édition (classique et ProseMirror). | ''true'' |
 | use_pagesicon | Utiliser le helper ''pagesicon'' si disponible. | ''true'' |

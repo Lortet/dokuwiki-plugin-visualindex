@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin visualindex
- * Affiche les pages d’un namespace donné
+ * Affiche les pages d'un namespace donné
  * Auteur: Choimetg, Lortetv
  */
- 
+
 use dokuwiki\Extension\SyntaxPlugin;
 use dokuwiki\File\PageResolver;
 use dokuwiki\Ui\Index;
@@ -29,13 +29,13 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
     }
 
     public function getType() {
-        return 'substition'; // substitution = remplacer la balise par du contenu
+        return 'substition'; // substition = remplacer la balise par du contenu (orthographe figée dans l'API DokuWiki)
     }
-	
+
     public function getPType() {
-        return 'block'; 
+        return 'block';
     }
-	
+
     public function getSort() { // priorité du plugin par rapport à d'autres
         return 10;
     }
@@ -67,7 +67,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 
 		return $result;
 	}
-	
+
 	private function getCurrentNamespace($ID, $getMedias = false) {
 		if(!is_dir($this->namespaceDir($ID, $getMedias))) {
 			$pageNamespaceInfo = $this->getNamespaceInfo($ID);
@@ -75,7 +75,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 				return $pageNamespaceInfo['parentNamespace'];
 			}
 		}
-		
+
 		return $ID;
 	}
 
@@ -87,7 +87,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 		$getMedias = isset($data['medias']) && $data['medias'] || false;
 		$filter = isset($data['filter'])? $data['filter'] : null;
 		$desc = isset($data['desc']) && $data['desc'] || false;
-		
+
 		if($data['namespace'] === '.') { // Récupération du namespace courant
 			$namespace = $this->getCurrentNamespace($ID, $getMedias);
 		}
@@ -99,7 +99,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 		else {
 			$namespace = cleanID($data['namespace']);
 		}
-		
+
 		$items = $this->getItemsAndSubfoldersItems($namespace, $getMedias, $filter, $desc);
 		if($items === false) {
 			$this->renderInfoMessage($renderer, 'namespace_not_found');
@@ -109,13 +109,24 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 			$this->renderInfoMessage($renderer, 'empty');
 			return true;
 		}
-		
+
+		// Tri stable : homepages en premier, ordre de scan préservé pour les égaux
+		$idx = 0;
+		foreach ($items as &$item) { $item['_idx'] = $idx++; }
+		unset($item);
 		usort($items, function($a, $b) {
-			return $b['sortID'] - $a['sortID'];
+			$diff = $b['sortID'] - $a['sortID'];
+			return $diff !== 0 ? $diff : ($a['_idx'] - $b['_idx']);
 		});
-		
-		$textSize = $this->getConf('taille_texte');
-		$textColor = $this->getConf('couleur_texte');
+
+		$tileWidth = $this->getConf('tile_width');
+		$iconSize  = $this->getConf('icon_size');
+		$textSize  = $this->getConf('text_size');
+		$textColor = $this->getConf('text_color');
+
+		// Styles inline dérivés de la configuration
+		$tileStyle = 'width:' . hsc($tileWidth) . ';';
+		$imgStyle  = 'max-width:' . hsc($iconSize) . ';max-height:' . hsc($iconSize) . ';';
 
 		// -----------------------------
 		// ProseMirror / HTML wrapper
@@ -124,29 +135,28 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 			.'data-namespace="'.htmlspecialchars($namespace).'" '
 			.'data-filter="'.htmlspecialchars($filter).'" '
 			.'data-desc="'.($desc ? '1' : '0').'">';
-		
+
 		// -----------------------------
 		// HTML classique pour le rendu visuel
 		// -----------------------------
 		$renderer->doc .= '<div class="visualindex">';
-		
+
 		$renderedItems = 0;
 		foreach ($items as $item) {
-			$pageID = $item['pageID'];
-			$namespace = $item['namespace'];
+			$pageID        = $item['pageID'];
+			$itemNamespace = $item['namespace'];
 			$pageNamespace = $item['pageNamespace'];
-			$sortID = $item['sortID'];
-			$isHomepage = $item['isHomepage'];
-			
+			$isHomepage    = $item['isHomepage'];
+
 			if($pageNamespace == $ID) {
 				continue;
 			}
-			
+
 			$permission = auth_quickaclcheck($pageNamespace);
 			if($permission < AUTH_READ) {
 				continue;
 			}
-			
+
 			$logoUrl = null;
 			if(!$getMedias) {
 				$title = p_get_first_heading($pageNamespace);
@@ -160,24 +170,24 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 			}
 
 			if(!$logoUrl) {
-				$logoUrl = $this->getPageImage($namespace, $pageID);
+				$logoUrl = $this->getPageImage($itemNamespace, $pageID);
 			}
 
 			// Afficher le lien de la page ou du sous-dossier
 			$targetAttr = $getMedias ? $this->getMediaLinkTargetAttr() : '';
-			$renderer->doc .= '<a class="vi_tile' . ($isHomepage? ' homepage' : '') . '" style="color:' . $textColor . ' ; font-size:' . $textSize . '" href="'. ($getMedias? ml($pageNamespace) : wl($pageNamespace)) . '"' . $targetAttr . '>';
-				$renderer->doc .= '<div class="vi_content"><img loading="lazy" src="' . $logoUrl . '" alt="" /><br />' . $title . '</div>';
+			$renderer->doc .= '<a class="vi_tile' . ($isHomepage? ' homepage' : '') . '" style="' . $tileStyle . 'color:' . $textColor . ';font-size:' . $textSize . '" href="'. ($getMedias? ml($pageNamespace) : wl($pageNamespace)) . '"' . $targetAttr . '>';
+				$renderer->doc .= '<div class="vi_content"><img loading="lazy" src="' . $logoUrl . '" style="' . $imgStyle . '" alt="" /><br />' . $title . '</div>';
 				$renderer->doc .= '<div class="vi_vertical_align"></div>';
 			$renderer->doc .= '</a>';
 			$renderedItems++;
 		}
-		
+
 		$renderer->doc .= '</div>';
 
 		if($renderedItems === 0) {
 			$this->renderInfoMessage($renderer, 'empty');
 		}
-		
+
 		$renderer->doc .= '</span>';
 		// -----------------------------
 		// Fin du node ProseMirror
@@ -245,7 +255,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 	/**
 	 * Renvoie l'URL de l'icone de la page via pagesicon, sinon image par defaut.
 	 */
-	public function getPageImage($namespace, $pageID = null) {
+	private function getPageImage($namespace, $pageID = null) {
 		if(!$pageID) {
 			$pageNamespaceInfo = $this->getNamespaceInfo($namespace);
 			$namespace = $pageNamespaceInfo['parentNamespace'];
@@ -279,9 +289,9 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 
 		return $this->getDefaultImageUrl();
 	}
-	
-	
-	public function createListItem($parentNamespace, $pageID, $isHomepage = false) {
+
+
+	private function createListItem($parentNamespace, $pageID, $isHomepage = false) {
 		return array(
 			'pageID' => $pageID,
 			'namespace' => $parentNamespace,
@@ -294,7 +304,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 	/**
 	 * Récupère à la fois les pages et les sous-dossiers d'un namespace
 	 */
-	public function getItemsAndSubfoldersItems($namespace, $getMedias = false, $filter = null, $desc = false) {
+	private function getItemsAndSubfoldersItems($namespace, $getMedias = false, $filter = null, $desc = false) {
 		global $conf;
 
 		$childrens = @scandir($this->namespaceDir($namespace, $getMedias), $desc? SCANDIR_SORT_DESCENDING : SCANDIR_SORT_ASCENDING);
@@ -308,8 +318,8 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 
 			return false;
 		}
-		
-		$start = $conf['start']; // 'accueil' dans la plupart des temps (dans bpnum:d-s:accueil)
+
+		$start = $conf['start']; // page d'accueil du namespace
 
 		$finalPattern = null;
 		if($filter) {
@@ -323,7 +333,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 
 			$finalPattern = '/(' . implode('|', $regexParts) . ')/i';
 		}
-		
+
 		$items = [];
 		foreach($childrens as $child) {
 			if($child[0] == '.' ) {
@@ -333,7 +343,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 			if($finalPattern && !preg_match($finalPattern, $child)) {
 				continue;
 			}
-			
+
 			$childPathInfo = pathinfo($child);
 			$childID = cleanID($childPathInfo['filename']);
 			$childNamespace = cleanID("$namespace:$childID");
@@ -348,7 +358,7 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 				}
 				continue;
 			}
-			
+
 			if(!$childHasExtension && $isDirNamespace) { // Si dossier
 				if(page_exists("$childNamespace:$start")) { // S'il y a une page d'accueil
 					$items[] = $this->createListItem($childNamespace, $start);
@@ -359,49 +369,49 @@ class syntax_plugin_visualindex_visualindex extends SyntaxPlugin {
 				else if($isPageNamespace) { // S'il y a une page du même nom que le dossier au même niveau que le dossier
 					$items[] = $this->createListItem($namespace, $childID);
 				}
-				
+
 				continue;
 			}
-			
+
 			if(!$isDirNamespace && $isPageNamespace) {
 				$skipRegex = $this->getConf('skip_file');
 				if (!empty($skipRegex) && preg_match($skipRegex, $childNamespace)) {
 					continue;
 				}
-				
+
 				$isHomepage = false;
 				$pageNamespaceInfo = $this->getNamespaceInfo("$namespace:$childID");
 				if($this->isHomepage($childID, $pageNamespaceInfo['parentID'])) {
 					$isHomepage = true;
 				}
-				
+
 				$items[] = $this->createListItem($namespace, $childID, $isHomepage);
 			}
 		}
 
 		return $items;
 	}
-	
-	public function isHomepage($pageID, $parentID) {
+
+	private function isHomepage($pageID, $parentID) {
 		global $conf;
 		$startPageID = $conf['start'];
-		
+
 		return $pageID == $startPageID || $pageID == $parentID;
 	}
-	
-	public function namespaceDir($namespace, $getMedias = false) {
+
+	private function namespaceDir($namespace, $getMedias = false) {
 		global $conf;
-		
+
 		// Choix du dossier selon le mode
 		$baseDir = $getMedias ? $conf['mediadir'] : $conf['datadir'];
 
 		// Remplacement des deux-points par des slashs et encodage UTF-8
 		return $baseDir . '/' . utf8_encodeFN(str_replace(':', '/', $namespace));
 	}
-	
-	public function getNamespaceInfo($namespace) {
+
+	private function getNamespaceInfo($namespace) {
 		$namespaces = explode(':', $namespace);
-		
+
 		return array(
 			'pageNamespace' => $namespace,
 			'pageID' => array_pop($namespaces),

@@ -4,9 +4,10 @@
  
  */
  
-$conf['taille_icone'] = '100px';
-$conf['taille_texte'] = '13px';
-$conf['couleur_texte'] = '#000000';
+$conf['tile_width'] = '108px';
+$conf['icon_size']  = '55px';
+$conf['text_size']  = '1.1em';
+$conf['text_color'] = '#000000';
 $conf['skip_file']     = '';
 $conf['show_in_editor_menu'] = true;
 $conf['use_pagesicon'] = true;

@@ -1,5 +1,9 @@
 # Visualindex
 
+[🇫🇷 Français](README) | **🇬🇧 English** | [🇩🇪 Deutsch](README_DE) | [🇪🇸 Español](README_ES)
+
+---
+
 The **visualindex** plugin displays a visual index of pages (or media files) from a DokuWiki namespace.
 
 It is compatible with:
@@ -47,9 +51,9 @@ Special namespace values:
 
 In the configuration manager:
 
-- `taille_icone`: icon size (e.g. `100px`);
-- `taille_texte`: text size (e.g. `13px`);
-- `couleur_texte`: text color (hex, rgb/rgba, or CSS color name);
+- `icon_size`: icon size (e.g. `100px`);
+- `text_size`: text size (e.g. `13px`);
+- `text_color`: text color (hex, rgb/rgba, or CSS color name);
 - `skip_file`: regular expression for pages to ignore;
 - `show_in_editor_menu`: show Visualindex in editor menus (classic and ProseMirror);
 - `use_pagesicon`: use the `pagesicon` helper when available;
