@@ -33,6 +33,8 @@ It is compatible with:
   * the classic editor;
   * [[https://www.dokuwiki.org/plugin:prosemirror|ProseMirror]].
 
+{{https://i.ibb.co/5WKQFcdF/Screenshot-2026-03-09-at-15-37-11-Wiki-doc-Wiki-BSPP.png}}
+
 ===== Syntax =====
 
 Base syntax:
